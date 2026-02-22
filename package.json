@@ -1,0 +1,36 @@
+{
+  "name": "affiliate-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Affiliate Link Converter Platform - Convert TikTok Shop & Shopee links to affiliate links for cashback",
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/backend & npm run dev --workspace=apps/frontend",
+    "dev:backend": "npm run start:dev --workspace=apps/backend",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "build": "npm run build --workspaces",
+    "build:backend": "npm run build --workspace=apps/backend",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "start": "npm run start --workspace=apps/backend & npm run start --workspace=apps/frontend",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces",
+    "db:migrate": "npm run prisma:migrate --workspace=apps/backend",
+    "db:generate": "npm run prisma:generate --workspace=apps/backend",
+    "db:studio": "npm run prisma:studio --workspace=apps/backend"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "affiliate",
+    "shopee",
+    "tiktok",
+    "cashback",
+    "nestjs",
+    "nextjs"
+  ],
+  "author": "",
+  "license": "MIT"
+}

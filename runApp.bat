@@ -1,0 +1,6 @@
+@echo off
+echo Starting Backend...
+start "Backend API" cmd /k "npm run dev:backend"
+echo Starting Frontend...
+start "Frontend App" cmd /k "npm run dev:frontend"
+echo Both services started in new windows.

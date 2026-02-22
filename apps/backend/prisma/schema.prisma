@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum Platform {
+  SHOPEE
+  TIKTOK
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  fullName      String?   @map("full_name")
+  phone         String?
+  bankAccount   String?   @map("bank_account")
+  bankName      String?   @map("bank_name")
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true) @map("is_active")
+  
+  availableBalance  Decimal @default(0) @map("available_balance") @db.Decimal(15, 2)
+  pendingBalance    Decimal @default(0) @map("pending_balance") @db.Decimal(15, 2)
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  linkConversions LinkConversion[]
+  orders          Order[]
+  withdrawals     Withdrawal[]
+
+  @@map("users")
+}
+
+model LinkConversion {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  platform        Platform
+  originalUrl     String    @map("original_url")
+  affiliateUrl    String    @map("affiliate_url")
+  
+  productId       String?   @map("product_id")
+  shopId          String?   @map("shop_id")
+  productName     String?   @map("product_name")
+  productImage    String?   @map("product_image")
+  productPrice    Decimal?  @map("product_price") @db.Decimal(15, 2)
+  
+  commissionRate  Decimal?  @map("commission_rate") @db.Decimal(5, 4)
+  cashbackRate    Decimal?  @map("cashback_rate") @db.Decimal(5, 4)
+  
+  subId           String?   @map("sub_id")
+  clickCount      Int       @default(0) @map("click_count")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  
+  user            User      @relation(fields: [userId], references: [id])
+  orders          Order[]
+
+  @@index([userId])
+  @@index([platform])
+  @@index([subId])
+  @@map("link_conversions")
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  userId            String      @map("user_id")
+  conversionId      String?     @map("conversion_id")
+  platform          Platform
+  
+  externalOrderId   String      @map("external_order_id")
+  externalItemId    String?     @map("external_item_id")
+  
+  productName       String      @map("product_name")
+  productImage      String?     @map("product_image")
+  productPrice      Decimal     @map("product_price") @db.Decimal(15, 2)
+  quantity          Int         @default(1)
+  totalAmount       Decimal     @map("total_amount") @db.Decimal(15, 2)
+  
+  commissionRate    Decimal     @map("commission_rate") @db.Decimal(5, 4)
+  commissionAmount  Decimal     @map("commission_amount") @db.Decimal(15, 2)
+  cashbackRate      Decimal     @map("cashback_rate") @db.Decimal(5, 4)
+  cashbackAmount    Decimal     @map("cashback_amount") @db.Decimal(15, 2)
+  
+  status            OrderStatus @default(PENDING)
+  purchasedAt       DateTime    @map("purchased_at")
+  completedAt       DateTime?   @map("completed_at")
+  
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  user              User            @relation(fields: [userId], references: [id])
+  linkConversion    LinkConversion? @relation(fields: [conversionId], references: [id])
+
+  @@unique([platform, externalOrderId, externalItemId])
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model Withdrawal {
+  id            String            @id @default(cuid())
+  userId        String            @map("user_id")
+  amount        Decimal           @db.Decimal(15, 2)
+  
+  bankAccount   String            @map("bank_account")
+  bankName      String            @map("bank_name")
+  accountHolder String            @map("account_holder")
+  
+  status        WithdrawalStatus  @default(PENDING)
+  processedAt   DateTime?         @map("processed_at")
+  processedBy   String?           @map("processed_by")
+  rejectReason  String?           @map("reject_reason")
+  transactionId String?           @map("transaction_id")
+  
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  user          User              @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("withdrawals")
+}
+
+model PlatformToken {
+  id            String    @id @default(cuid())
+  platform      Platform  @unique
+  accessToken   String    @map("access_token")
+  refreshToken  String?   @map("refresh_token")
+  expiresAt     DateTime  @map("expires_at")
+  metadata      Json?     @default("{}")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("platform_tokens")
+}
+
+model Setting {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  value       String
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
